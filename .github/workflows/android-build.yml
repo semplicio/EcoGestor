@@ -29,8 +29,8 @@ jobs:
         with:
           cmdline-tools-version: "15859902"
 
-      - name: Android API 37
-        run: sdkmanager "platforms;android-37"
+      - name: Android API 37 Preview
+        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Gradle 9.5.0
         uses: gradle/actions/setup-gradle@v4
