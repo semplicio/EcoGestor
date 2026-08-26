@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ecogestor_green">#43A047</color>
+    <color name="ecogestor_green_light">#79C843</color>
+    <color name="ecogestor_teal">#0B6B68</color>
+    <color name="ecogestor_dark">#073B4C</color>
+    <color name="ecogestor_surface">#F6FAF7</color>
+    <color name="white">#FFFFFF</color>
+</resources>
