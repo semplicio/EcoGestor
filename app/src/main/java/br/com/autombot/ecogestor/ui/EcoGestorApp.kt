@@ -3,199 +3,228 @@ package br.com.autombot.ecogestor.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.TrackChanges
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import br.com.autombot.ecogestor.data.AppMode
 import br.com.autombot.ecogestor.data.EcoRepository
-import br.com.autombot.ecogestor.data.SustainabilityGoal
 import br.com.autombot.ecogestor.ui.theme.EcoDark
 import br.com.autombot.ecogestor.ui.theme.EcoGreenLight
 
-private data class AppSection(val title: String, val icon: ImageVector)
-
-private val sections = listOf(
-    AppSection("Início", Icons.Default.Home),
-    AppSection("Consumos", Icons.Default.BarChart),
-    AppSection("Metas", Icons.Default.TrackChanges),
-    AppSection("Empresa", Icons.Default.Business)
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EcoGestorApp() {
     val context = LocalContext.current
     val repository = remember(context) { EcoRepository(context.applicationContext) }
+    var configured by remember { mutableStateOf(repository.isModeConfigured()) }
+    var selectedMode by remember { mutableStateOf(repository.loadSelectedMode()) }
 
-    var selectedIndex by rememberSaveable { mutableStateOf(0) }
-    var company by remember { mutableStateOf(repository.loadCompany()) }
-    var consumptions by remember { mutableStateOf(repository.loadConsumptions()) }
-    var goals by remember { mutableStateOf(repository.loadGoals()) }
+    if (!configured) {
+        FirstUseModeScreen(
+            onSelect = { mode ->
+                repository.completeModeSetup(mode)
+                selectedMode = mode
+                configured = true
+            },
+            onUseBoth = {
+                repository.completeModeSetup(AppMode.HOUSEHOLD)
+                selectedMode = AppMode.HOUSEHOLD
+                configured = true
+            }
+        )
+        return
+    }
 
-    var showConsumptionDialog by remember { mutableStateOf(false) }
-    var showCompanyDialog by remember { mutableStateOf(false) }
-    var showNewGoalDialog by remember { mutableStateOf(false) }
-    var goalBeingEdited by remember { mutableStateOf<SustainabilityGoal?>(null) }
+    when (selectedMode) {
+        AppMode.HOUSEHOLD -> HouseholdModeApp(
+            onSwitchToBusiness = {
+                repository.saveSelectedMode(AppMode.BUSINESS)
+                selectedMode = AppMode.BUSINESS
+            }
+        )
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(shape = CircleShape, color = EcoDark, modifier = Modifier.size(38.dp)) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Default.Eco,
-                                    contentDescription = null,
-                                    tint = EcoGreenLight,
-                                    modifier = Modifier.size(23.dp)
-                                )
-                            }
-                        }
-                        Column {
-                            Text("EcoGestor", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text(
-                                "Economia sustentável para o seu negócio",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+        AppMode.BUSINESS -> BusinessModeApp(
+            onSwitchToHousehold = {
+                repository.saveSelectedMode(AppMode.HOUSEHOLD)
+                selectedMode = AppMode.HOUSEHOLD
+            }
+        )
+    }
+}
+
+@Composable
+private fun FirstUseModeScreen(
+    onSelect: (AppMode) -> Unit,
+    onUseBoth: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 44.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(shape = CircleShape, color = EcoDark, modifier = Modifier.size(56.dp)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.Eco,
+                                contentDescription = null,
+                                tint = EcoGreenLight,
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
-            )
-        },
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                sections.forEachIndexed { index, section ->
-                    NavigationBarItem(
-                        selected = selectedIndex == index,
-                        onClick = { selectedIndex = index },
-                        icon = { Icon(section.icon, contentDescription = section.title) },
-                        label = { Text(section.title) }
-                    )
+                    Column {
+                        Text(
+                            "EcoGestor",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Economia para sua casa e seu negócio",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    "Como você pretende usar o EcoGestor?",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 18.dp)
+                )
+                Text(
+                    "Os dados de casa e da empresa ficam separados. Você pode alternar entre os dois modos quando quiser.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+
+            item {
+                ModeCard(
+                    title = "Controlar minha casa",
+                    description = "Renda, gastos, contas, assinaturas, metas e economia doméstica.",
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    onClick = { onSelect(AppMode.HOUSEHOLD) }
+                )
+            }
+
+            item {
+                ModeCard(
+                    title = "Controlar meu negócio",
+                    description = "Consumos, custos, metas sustentáveis e indicadores da empresa.",
+                    icon = { Icon(Icons.Default.Business, contentDescription = null) },
+                    onClick = { onSelect(AppMode.BUSINESS) }
+                )
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(20.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.SwapHoriz, contentDescription = null)
+                            Text("Usar casa e negócio", fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            "Comece pelo modo Casa e alterne para Negócio pelo botão no topo do aplicativo.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        OutlinedButton(
+                            onClick = onUseBoth,
+                            modifier = Modifier.fillMaxWidth().padding(top = 14.dp)
+                        ) {
+                            Text("Usar os dois")
+                        }
+                    }
                 }
             }
         }
-    ) { innerPadding ->
-        when (selectedIndex) {
-            0 -> HomeScreen(
-                company = company,
-                consumptions = consumptions,
-                goals = goals,
-                onAddConsumption = { showConsumptionDialog = true },
-                onOpenCompany = {
-                    selectedIndex = 3
-                    showCompanyDialog = true
-                },
-                modifier = Modifier.padding(innerPadding)
-            )
+    }
+}
 
-            1 -> ConsumptionScreen(
-                entries = consumptions,
-                onAdd = { showConsumptionDialog = true },
-                onDelete = { entry ->
-                    val updated = consumptions.filterNot { it.id == entry.id }
-                    repository.saveConsumptions(updated)
-                    consumptions = updated
-                },
-                modifier = Modifier.padding(innerPadding)
+@Composable
+private fun ModeCard(
+    title: String,
+    description: String,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) { icon() }
+            }
+            Text(
+                title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 14.dp)
             )
-
-            2 -> GoalsScreen(
-                goals = goals,
-                onAdd = { showNewGoalDialog = true },
-                onEdit = { goalBeingEdited = it },
-                onDelete = { goal ->
-                    val updated = goals.filterNot { it.id == goal.id }
-                    repository.saveGoals(updated)
-                    goals = updated
-                },
-                modifier = Modifier.padding(innerPadding)
+            Text(
+                description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp)
             )
-
-            else -> BusinessScreen(
-                company = company,
-                onEdit = { showCompanyDialog = true },
-                modifier = Modifier.padding(innerPadding)
-            )
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            ) {
+                Text("Começar")
+            }
         }
-    }
-
-    if (showConsumptionDialog) {
-        ConsumptionFormDialog(
-            onDismiss = { showConsumptionDialog = false },
-            onSave = { entry ->
-                val updated = (listOf(entry) + consumptions).sortedByDescending { it.createdAt }
-                repository.saveConsumptions(updated)
-                consumptions = updated
-                showConsumptionDialog = false
-            }
-        )
-    }
-
-    if (showCompanyDialog) {
-        CompanyFormDialog(
-            company = company,
-            onDismiss = { showCompanyDialog = false },
-            onSave = { profile ->
-                repository.saveCompany(profile)
-                company = profile
-                showCompanyDialog = false
-            }
-        )
-    }
-
-    if (showNewGoalDialog || goalBeingEdited != null) {
-        GoalFormDialog(
-            goal = goalBeingEdited,
-            onDismiss = {
-                showNewGoalDialog = false
-                goalBeingEdited = null
-            },
-            onSave = { goal ->
-                val updated = if (goals.any { it.id == goal.id }) {
-                    goals.map { if (it.id == goal.id) goal else it }
-                } else {
-                    listOf(goal) + goals
-                }
-                repository.saveGoals(updated)
-                goals = updated
-                showNewGoalDialog = false
-                goalBeingEdited = null
-            }
-        )
     }
 }
