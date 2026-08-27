@@ -11,8 +11,8 @@ android {
         applicationId = "br.com.autombot.ecogestor"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -44,6 +44,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
