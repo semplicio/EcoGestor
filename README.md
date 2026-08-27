@@ -2,21 +2,30 @@
 
 Aplicativo mobile de economia sustentável para MEIs, pequenos empreendedores e empresas.
 
-O EcoGestor transforma dados simples de consumo em indicadores financeiros e ambientais para ajudar o negócio a reduzir desperdícios, economizar recursos e acompanhar metas de sustentabilidade.
+O EcoGestor transforma registros de consumo em indicadores financeiros e ambientais para ajudar o negócio a reduzir desperdícios, economizar recursos e acompanhar metas de sustentabilidade.
 
-## MVP Android
+## Versão atual — 0.2.0
 
-A primeira versão do aplicativo inclui:
+A versão 0.2.0 transforma o protótipo visual inicial em um MVP funcional.
 
-- dashboard com resumo mensal;
-- acompanhamento de energia, água, combustível e materiais;
-- cálculo de economia estimada;
-- Índice EcoGestor;
-- metas de redução de consumo;
-- recomendações de economia sustentável;
-- navegação entre Início, Consumos, Metas e Empresa;
-- identidade visual e ícone adaptativo do EcoGestor;
-- estrutura preparada para persistência local, autenticação, leitura de contas e sincronização futura com a plataforma web.
+### Funções disponíveis
+
+- cadastro e edição dos dados da empresa/MEI;
+- cadastro de consumos de energia elétrica, água, combustível e materiais;
+- informação de quantidade, valor pago e período de cada lançamento;
+- histórico real de lançamentos;
+- exclusão de lançamentos;
+- criação, edição e exclusão de metas sustentáveis;
+- acompanhamento percentual das metas;
+- persistência local: empresa, consumos e metas permanecem salvos após fechar o aplicativo;
+- dashboard calculado com os dados cadastrados pelo usuário;
+- comparação do mês atual com o mês anterior;
+- cálculo de economia mensal e projeção anual;
+- Índice EcoGestor calculado dinamicamente;
+- recomendações geradas a partir do histórico de consumo;
+- estados vazios no lugar dos antigos dados fictícios.
+
+Nesta etapa os dados ficam armazenados no próprio aparelho. Banco estruturado, autenticação, nuvem, leitura automática de contas e integração com a plataforma web fazem parte das próximas evoluções.
 
 ## Stack
 
@@ -36,7 +45,7 @@ A primeira versão do aplicativo inclui:
 - Android SDK Command-line Tools atualizados
 - Gradle 9.5.0 ou Android Studio compatível
 
-Para instalar a plataforma usada pelo projeto via linha de comando:
+Instale os componentes Android utilizados pelo projeto:
 
 ```bash
 sdkmanager "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
@@ -48,17 +57,15 @@ Aceite as licenças, se necessário:
 yes | sdkmanager --licenses
 ```
 
-## Build usando Gradle instalado no sistema
+## Build local
 
-Na raiz do projeto:
+Na raiz do projeto, usando Gradle instalado no sistema:
 
 ```bash
 gradle clean :app:assembleDebug
 ```
 
-## Gerar o Gradle Wrapper e usar ./gradlew
-
-Caso o clone ainda não tenha o wrapper:
+Ou gere/use o Gradle Wrapper:
 
 ```bash
 gradle wrapper --gradle-version 9.5.0
@@ -66,34 +73,48 @@ chmod +x gradlew
 ./gradlew clean :app:assembleDebug
 ```
 
-APK de debug:
+APK gerado:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Para instalar em um aparelho conectado via ADB:
+Para instalar ou atualizar no aparelho via ADB:
 
 ```bash
 adb devices
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Para remover a instalação de teste:
+O parâmetro `-r` atualiza o aplicativo existente e preserva os dados locais.
+
+Para apagar todos os dados de teste sem desinstalar:
 
 ```bash
-adb uninstall br.com.autombot.ecogestor
+adb shell pm clear br.com.autombot.ecogestor
 ```
 
 ## Build no GitHub
 
-O workflow `.github/workflows/android-build.yml` executa o build do APK automaticamente em pushes para `main` e também pode ser iniciado manualmente pela aba **Actions** do repositório.
+O workflow `.github/workflows/android-build.yml` executa automaticamente o build em pushes para `main` e pode ser iniciado manualmente na aba **Actions**.
 
-Ao concluir com sucesso, o workflow publica o artefato:
+Após um build bem-sucedido, o APK fica disponível no artefato:
 
 ```text
 EcoGestor-debug
 ```
+
+## Próximas etapas
+
+- banco local com Room e histórico mais avançado;
+- edição de lançamentos;
+- gráficos mensais e anuais;
+- categorias e subcategorias personalizadas;
+- leitura de contas por foto/PDF;
+- notificações e alertas de consumo;
+- autenticação e backup/sincronização em nuvem;
+- relatórios e exportação;
+- integração com futura plataforma web.
 
 ## Identidade
 
